@@ -8,17 +8,19 @@ print(input_feature.shape)
 
 
 # Set parameters for learning
-learning_rate = 0.02
-num_steps = 5000
-batch_size = 128
+learning_rate = 0.01
+num_steps = 100
+batch_size = 16 
 
 # Set parameters for display
-display_step = 500
+display_step = 10
 
 # Set parameters for network
 num_input = 524
 num_hidden_1 = 400
-num_hidden_2 = 200
+num_hidden_2 = 300
+num_hidden_3 = 200
+num_hidden_4 = 100
 
 X = tf.placeholder("float", [None, num_input])
 
@@ -26,28 +28,40 @@ X = tf.placeholder("float", [None, num_input])
 weights = {
     "encoder_h1": tf.Variable(tf.random_normal([num_input, num_hidden_1])),
     "encoder_h2": tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])),
-    "decoder_h1": tf.Variable(tf.random_normal([num_hidden_2, num_hidden_1])),
-    "decoder_h2": tf.Variable(tf.random_normal([num_hidden_1, num_input])),
+    "encoder_h3": tf.Variable(tf.random_normal([num_hidden_2, num_hidden_3])),
+    "encoder_h4": tf.Variable(tf.random_normal([num_hidden_3, num_hidden_4])),
+    "decoder_h1": tf.Variable(tf.random_normal([num_hidden_4, num_hidden_3])),
+    "decoder_h2": tf.Variable(tf.random_normal([num_hidden_3, num_hidden_2])),
+    "decoder_h3": tf.Variable(tf.random_normal([num_hidden_2, num_hidden_1])),
+    "decoder_h4": tf.Variable(tf.random_normal([num_hidden_1, num_input])),
 }
 
 biases = {
     "encoder_b1": tf.Variable(tf.random_normal([num_hidden_1])),
     "encoder_b2": tf.Variable(tf.random_normal([num_hidden_2])),
-    "decoder_b1": tf.Variable(tf.random_normal([num_hidden_1])),
-    "decoder_b2": tf.Variable(tf.random_normal([num_input])),
+    "encoder_b3": tf.Variable(tf.random_normal([num_hidden_3])),
+    "encoder_b4": tf.Variable(tf.random_normal([num_hidden_4])),
+    "decoder_b1": tf.Variable(tf.random_normal([num_hidden_3])),
+    "decoder_b2": tf.Variable(tf.random_normal([num_hidden_2])),
+    "decoder_b3": tf.Variable(tf.random_normal([num_hidden_1])),
+    "decoder_b4": tf.Variable(tf.random_normal([num_input])),
 }
 
 # Building the encoder
 def encoder(x):
     layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(x, weights['encoder_h1']), biases['encoder_b1']))
     layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['encoder_h2']), biases['encoder_b2']))
-    return layer_2
+    layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, weights['encoder_h3']), biases['encoder_b3']))
+    layer_4 = tf.nn.sigmoid(tf.add(tf.matmul(layer_3, weights['encoder_h4']), biases['encoder_b4']))
+    return layer_4
 
 # Building the decoder
 def decoder(x):
     layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(x, weights['decoder_h1']), biases['decoder_b1']))
     layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['decoder_h2']), biases['decoder_b2']))
-    return layer_2
+    layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, weights['decoder_h3']), biases['decoder_b3']))
+    layer_4 = tf.nn.sigmoid(tf.add(tf.matmul(layer_3, weights['decoder_h4']), biases['decoder_b4']))
+    return layer_4
 
 # Construct the model
 encoder_op = encoder(X)
@@ -72,8 +86,4 @@ with tf.Session() as sess:
             _, l = sess.run([optimizer, loss], feed_dict={X:batch_x})
         if (step+1) % display_step == 0 or step == 0:
             print("Step %d: Minimize loss %f" % (step+1, l))
-
-
-# TODO
-# Test autoencoder
 
