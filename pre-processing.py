@@ -3,9 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from itertools import product
 
-###################################
+#################################################
 #   Process feature information  
-###################################
+#################################################
 with open("Dataset/ASD_expression_dataset.csv") as f:
     ncols = len(f.readline().split(','))
 
@@ -21,17 +21,17 @@ for i in range(features.shape[1]):
 
 np.savetxt("Dataset/ASD_expression_features.csv", features, delimiter=',', fmt='%.6f')
 
-###################################
+#################################################
 # Process label information
-###################################
+#################################################
 tmp = np.genfromtxt("Dataset/ASD_expression_dataset.csv", dtype=None, delimiter=',', usecols=2, skip_header=1, encoding="ascii")
 my_dict = {'"ASD"': 1, '"Disease"': 0}
 labels = [my_dict[i] for i in tmp]
 np.savetxt("Dataset/ASD_expression_labels.csv", labels, fmt="%i", delimiter=',')
 
-###################################
+#################################################
 # Process transcript information
-###################################
+#################################################
 transcript = np.genfromtxt("Dataset/ASD_transcript_seqs.csv", dtype=None, delimiter=',', usecols=3, skip_header=1, encoding="ascii")
 
 encoding = []
