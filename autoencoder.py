@@ -1,9 +1,10 @@
+from filenames import *
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Read the dataset
-input_feature = np.genfromtxt("Dataset/ASD_expression_features.csv", delimiter=',')
+input_feature = np.genfromtxt(data_path + norm_express_file, delimiter=',')
 print(input_feature.shape)
 
 
