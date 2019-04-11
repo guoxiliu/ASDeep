@@ -4,17 +4,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Read the dataset
-input_feature = np.genfromtxt(data_path + norm_express_file, delimiter=',')
+input_feature = np.genfromtxt(data_path + norm_express_file, delimiter=',').astype(np.float32)
 print(input_feature.shape)
+print(input_feature.dtype)
 
 
 # Set parameters for learning
 learning_rate = 0.01
-num_steps = 200
+num_steps = 300
 batch_size = 16 
 
 # Set parameters for display
-display_step = 10
+display_step = 50
 
 # Set parameters for network
 num_input = 524
@@ -40,15 +41,16 @@ biases = {
 
 # Building the encoder
 def encoder(x):
-    layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(x, weights['encoder_h1']), biases['encoder_b1']), name="encoder_layer1")
-    layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['encoder_h2']), biases['encoder_b2']), name="encoder_layer2")
-    return layer_2
+    layer_1 = tf.nn.relu(tf.add(tf.matmul(x, weights['encoder_h1']), biases['encoder_b1']), name="encoder_layer1")
+    # layer_2 = tf.nn.relu(tf.add(tf.matmul(layer_1, weights['encoder_h2']), biases['encoder_b2']), name="encoder_layer2")
+    # return layer_2
+    return layer_1
 
 # Building the decoder
 def decoder(x):
-    layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(x, weights['decoder_h1']), biases['decoder_b1']), name="decoder_layer1")
-    layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['decoder_h2']), biases['decoder_b2']), name="decoder_layer2")
-    return layer_2
+    layer_1 = tf.nn.relu(tf.add(tf.matmul(x, weights['decoder_h2']), biases['decoder_b2']), name="decoder_layer1")
+    # layer_2 = tf.nn.relu(tf.add(tf.matmul(layer_1, weights['decoder_h2']), biases['decoder_b2']), name="decoder_layer2")
+    return layer_1
 
 # Construct the model
 encoder_op = encoder(X)
@@ -75,3 +77,6 @@ with tf.Session() as sess:
         if (step+1) % display_step == 0 or step == 0:
             print("Step %d: Minimize loss %f" % (step+1, l))
 
+    out_features = sess.run(encoder(input_feature))
+    np.savetxt(feature_path + express_feature_file, out_features, fmt='%.3f', delimiter=' ')
+    

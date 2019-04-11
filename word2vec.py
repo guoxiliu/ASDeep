@@ -10,7 +10,8 @@ from gensim.models import word2vec
 corpus = word2vec.Text8Corpus(data_path + sentence_file)
 
 # train word2vec model
-model = word2vec.Word2Vec(corpus, size=200, window=5, min_count=5)
+vec_size = 128
+model = word2vec.Word2Vec(corpus, size=vec_size, window=5, min_count=5)
 
 # save the model to file
 model.save(model_path + word2vec_model_file)
@@ -37,7 +38,7 @@ features = []
 with open(data_path + sentence_file) as infile:
     for line in infile:
         words = line.split()
-        feature = np.zeros(200)
+        feature = np.zeros(vec_size)
         for word in words:
             feature += word_dict[word]
         features.append(feature)
