@@ -69,11 +69,12 @@ with open(data_path + sentence_file, "r") as infile:
         feature = [0] * len(k_mer_list)
         for word in words:
             feature[k_mer_dict[word]] += 1
+        feature = [x / len(words) for x in feature]
         k_mer_features.append(feature)
 
 # save k-mer features to file
 with open(feature_path + k_mer_feature_file, "w+") as outfile:
     for feature in k_mer_features:
         for item in feature:
-            outfile.write("%d " % item)
+            outfile.write("%f " % item)
         outfile.write("\n")
