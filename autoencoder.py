@@ -1,82 +1,42 @@
 from filenames import *
-import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+from keras.models import Model
+from keras.layers import Input, Dense, Activation
 
-# Read the dataset
-input_feature = np.genfromtxt(data_path + norm_express_file, delimiter=',').astype(np.float32)
-print(input_feature.shape)
-print(input_feature.dtype)
+def deep_autoencoder(compressed_size):
+    """
+    The function builds the model of autoencoder, and save the generated feature to file.
 
+    Parameters
+    ---------------
+    compressed_size: int
+        The compressed size for autoencoder.
+    """
+    np.random.seed(123)
 
-# Set parameters for learning
-learning_rate = 0.01
-num_steps = 300
-batch_size = 16 
+    # Read the dataset
+    X_train = np.genfromtxt(data_path + norm_express_file, delimiter=',').astype(np.float32)
 
-# Set parameters for display
-display_step = 50
+    # Set parameters for learning
+    num_epoch = 60
+    batch_size = 60 
+    acti_func = "relu"
 
-# Set parameters for network
-num_input = 524
-num_hidden_1 = 256
-num_hidden_2 = 128
+    # Set parameters for network
+    num_input = 524
 
-X = tf.placeholder("float", [None, num_input], name="input")
+    input_X = Input(shape=(num_input,))
+    encoded = Dense(compressed_size, activation=acti_func)(input_X)
+    decoded = Dense(num_input, activation=acti_func)(encoded)
+    autoencoder = Model(input_X, decoded)
+    encoder = Model(input_X, encoded)
 
-# Hidden layer settings
-weights = {
-    "encoder_h1": tf.Variable(tf.random_normal([num_input, num_hidden_1]), name="encoder_weights1"),
-    "encoder_h2": tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2]), name="encoder_weights2"),
-    "decoder_h1": tf.Variable(tf.random_normal([num_hidden_2, num_hidden_1]), name="decoder_weights1"),
-    "decoder_h2": tf.Variable(tf.random_normal([num_hidden_1, num_input]), name="decoder_weights2"),
-}
+    autoencoder.compile(loss="mean_squared_error", optimizer="adam")
+    autoencoder.fit(X_train, X_train, batch_size=batch_size, epochs=num_epoch, shuffle=True)
+    features = encoder.predict(X_train)
 
-biases = {
-    "encoder_b1": tf.Variable(tf.random_normal([num_hidden_1]), name="encoder_biases1"),
-    "encoder_b2": tf.Variable(tf.random_normal([num_hidden_2]), name="encoder_biases2"),
-    "decoder_b1": tf.Variable(tf.random_normal([num_hidden_1]), name="decoder_biases1"),
-    "decoder_b2": tf.Variable(tf.random_normal([num_input]), name="decoder_biases2"),
-}
+    np.savetxt(feature_path + express_feature_file, features, fmt='%f', delimiter=' ')
 
-# Building the encoder
-def encoder(x):
-    layer_1 = tf.nn.relu(tf.add(tf.matmul(x, weights['encoder_h1']), biases['encoder_b1']), name="encoder_layer1")
-    # layer_2 = tf.nn.relu(tf.add(tf.matmul(layer_1, weights['encoder_h2']), biases['encoder_b2']), name="encoder_layer2")
-    # return layer_2
-    return layer_1
-
-# Building the decoder
-def decoder(x):
-    layer_1 = tf.nn.relu(tf.add(tf.matmul(x, weights['decoder_h2']), biases['decoder_b2']), name="decoder_layer1")
-    # layer_2 = tf.nn.relu(tf.add(tf.matmul(layer_1, weights['decoder_h2']), biases['decoder_b2']), name="decoder_layer2")
-    return layer_1
-
-# Construct the model
-encoder_op = encoder(X)
-decoder_op = decoder(encoder_op)
-
-y_pre = decoder_op
-y = X
-
-loss = tf.reduce_mean(tf.pow(y - y_pre, 2), name="mean_square_loss")
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, name="optimizer").minimize(loss)
-
-init = tf.global_variables_initializer()
-
-# Run network model, start traning process
-with tf.Session() as sess:
-    writer = tf.summary.FileWriter("output", sess.graph)
-    sess.run(init)
-    total_batch = int(input_feature.shape[0]/batch_size)
-
-    for step in range(num_steps):
-        for i in range(total_batch):
-            batch_x = input_feature[i*batch_size : (i+1)*batch_size]
-            _, l = sess.run([optimizer, loss], feed_dict={X:batch_x})
-        if (step+1) % display_step == 0 or step == 0:
-            print("Step %d: Minimize loss %f" % (step+1, l))
-
-    out_features = sess.run(encoder(input_feature))
-    np.savetxt(feature_path + express_feature_file, out_features, fmt='%.3f', delimiter=' ')
-    
+if __name__ == "__main__":
+    deep_autoencoder(256)
